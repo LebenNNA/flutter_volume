@@ -37,10 +37,10 @@
   BOOL _eventListening;
   BOOL _enable_ui;
   float _volStep;
+    BOOL _isFirst;
 }
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
-
   FlutterMethodChannel *channel =
       [FlutterMethodChannel methodChannelWithName:@"com.befovy.flutter_volume"
                                   binaryMessenger:[registrar messenger]];
@@ -53,6 +53,7 @@
     (NSObject<FlutterPluginRegistrar> *)registrar {
   self = [super init];
   if (self) {
+    _isFirst = YES;
     _registrar = registrar;
     _eventListening = FALSE;
     _volStep = 1.0 / 16.0;
@@ -91,11 +92,9 @@
   } else if ([@"get" isEqualToString:call.method]) {
     result(@([self getVolume]));
   } else if ([@"enable_watch" isEqualToString:call.method]) {
-    _volumeView = [[MPVolumeView alloc] initWithFrame:CGRectZero];
     [self enableWatch];
     result(nil);
   } else if ([@"disable_watch" isEqualToString:call.method]) {
-    _volumeView = [[MPVolumeView alloc] initWithFrame:CGRectMake(-100, -100, 10, 10)];
     [self disableWatch];
     result(nil);
   } else if ([@"enable_ui" isEqualToString:call.method]) {
@@ -115,9 +114,8 @@
 
 - (void)initVolumeView {
   if (_volumeView == nil) {
-    _volumeView =
-        [[MPVolumeView alloc] initWithFrame:CGRectMake(-100, -100, 10, 10)];
-    _volumeView.hidden = YES;
+      _volumeView = [[MPVolumeView alloc] initWithFrame:CGRectMake(-100, -100, 10, 10)];
+      _volumeView.hidden = NO;
   }
   if (_volumeViewSlider == nil) {
     for (UIView *view in [_volumeView subviews]) {
@@ -138,7 +136,7 @@
 }
 
 - (float)getVolume {
-  [self initVolumeView];
+    [self initVolumeView];
   if (_volumeViewSlider == nil) {
     AVAudioSession *audioSession = [AVAudioSession sharedInstance];
     CGFloat currentVol = audioSession.outputVolume;
@@ -163,13 +161,14 @@
 - (void)enableWatch {
   if (_eventListening == NO) {
     _eventListening = YES;
+      [self initVolumeView];
 
     [[NSNotificationCenter defaultCenter]
         addObserver:self
            selector:@selector(volumeChange:)
                name:@"AVSystemController_SystemVolumeDidChangeNotification"
              object:nil];
-      
+    [[UIApplication sharedApplication] beginReceivingRemoteControlEvents];
     _eventChannel = [FlutterEventChannel
                     eventChannelWithName:@"com.befovy.flutter_volume/event"
                     binaryMessenger:[_registrar messenger]];
@@ -185,6 +184,7 @@
         removeObserver:self
                   name:@"AVSystemController_SystemVolumeDidChangeNotification"
                 object:nil];
+    [[UIApplication sharedApplication] endReceivingRemoteControlEvents];
     [_eventChannel setStreamHandler:nil];
     _eventChannel = nil;
   }
