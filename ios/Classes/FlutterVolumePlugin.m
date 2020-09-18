@@ -91,9 +91,11 @@
   } else if ([@"get" isEqualToString:call.method]) {
     result(@([self getVolume]));
   } else if ([@"enable_watch" isEqualToString:call.method]) {
+    _volumeView = [[MPVolumeView alloc] initWithFrame:CGRectZero];
     [self enableWatch];
     result(nil);
   } else if ([@"disable_watch" isEqualToString:call.method]) {
+    _volumeView = [[MPVolumeView alloc] initWithFrame:CGRectMake(-100, -100, 10, 10)];
     [self disableWatch];
     result(nil);
   } else if ([@"enable_ui" isEqualToString:call.method]) {
