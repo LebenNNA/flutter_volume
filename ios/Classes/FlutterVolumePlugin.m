@@ -134,7 +134,6 @@
 - (void)enableWatch {
     if (_eventListening == NO) {
         _eventListening = YES;
-        self.volumeView.hidden = NO;
         _lastVolume = [self getVolume];
         [[NSNotificationCenter defaultCenter]
          addObserver:self
@@ -197,6 +196,7 @@
 - (MPVolumeView *)volumeView {
     if (_volumeView == nil) {
         _volumeView = [[MPVolumeView alloc] initWithFrame:CGRectMake(-100, -100, 10, 10)];
+        _volumeView.hidden = YES;
         if (_volumeViewSlider == nil) {
             for (UIView *view in [self.volumeView subviews]) {
                 if ([view.class.description isEqualToString:@"MPVolumeSlider"]) {
