@@ -41,7 +41,7 @@
     BOOL _eventListening;
     BOOL _enable_ui;
     float _volStep;
-    BOOL _isFirst;
+    float _lastVolume;
 }
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
@@ -57,12 +57,12 @@
 (NSObject<FlutterPluginRegistrar> *)registrar {
     self = [super init];
     if (self) {
-        _isFirst = YES;
         _registrar = registrar;
         _eventListening = FALSE;
         _volStep = 1.0 / 16.0;
         _enable_ui = TRUE;
         _eventSink = [[QueuingEventSink alloc] init];
+        _lastVolume = -1.0;
     }
     return self;
 }
@@ -134,7 +134,7 @@
 - (void)enableWatch {
     if (_eventListening == NO) {
         _eventListening = YES;
-        
+        _lastVolume = [self getVolume];
         [[NSNotificationCenter defaultCenter]
          addObserver:self
          selector:@selector(volumeChange:)
@@ -165,11 +165,12 @@
 - (void)volumeChange:(NSNotification *)notification {
     NSString *style = [notification.userInfo
                        objectForKey:@"AVSystemController_AudioCategoryNotificationParameter"];
-    CGFloat value = [[notification.userInfo
+    float value = [[notification.userInfo
                       objectForKey:@"AVSystemController_AudioVolumeNotificationParameter"]
-                     doubleValue];
-    if ([style isEqualToString:@"Audio/Video"]) {
+                     floatValue];
+    if ([style isEqualToString:@"Audio/Video"] && _lastVolume != -1.0 && _lastVolume != value) {
         [self sendVolumeChange:value];
+        _lastVolume = value;
     }
 }
 
@@ -207,7 +208,7 @@
         if (!_volumeInWindow) {
             UIWindow *window = UIApplication.sharedApplication.keyWindow;
             if (window != nil) {
-                [window addSubview:self.volumeView];
+                [window addSubview:_volumeView];
                 _volumeInWindow = YES;
             }
         }
