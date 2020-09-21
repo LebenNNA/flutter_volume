@@ -134,6 +134,7 @@
 - (void)enableWatch {
     if (_eventListening == NO) {
         _eventListening = YES;
+        self.volumeView.hidden = NO;
         _lastVolume = [self getVolume];
         [[NSNotificationCenter defaultCenter]
          addObserver:self
