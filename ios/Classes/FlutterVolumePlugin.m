@@ -196,21 +196,19 @@
 - (MPVolumeView *)volumeView {
     if (_volumeView == nil) {
         _volumeView = [[MPVolumeView alloc] initWithFrame:CGRectMake(-100, -100, 10, 10)];
-        _volumeView.hidden = YES;
-        if (_volumeViewSlider == nil) {
-            for (UIView *view in [self.volumeView subviews]) {
-                if ([view.class.description isEqualToString:@"MPVolumeSlider"]) {
-                    _volumeViewSlider = (UISlider *)view;
-                    _volumeViewSlider.value = [AVAudioSession sharedInstance].outputVolume;
-                    break;
-                }
-            }
-        }
         if (!_volumeInWindow) {
             UIWindow *window = UIApplication.sharedApplication.keyWindow;
             if (window != nil) {
                 [window addSubview:_volumeView];
                 _volumeInWindow = YES;
+            }
+        }
+        if (_volumeViewSlider == nil) {
+            for (UIView *view in [self.volumeView subviews]) {
+                if ([view.class.description isEqualToString:@"MPVolumeSlider"]) {
+                    _volumeViewSlider = (UISlider *)view;
+                    break;
+                }
             }
         }
     }
